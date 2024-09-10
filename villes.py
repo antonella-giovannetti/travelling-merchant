@@ -1,7 +1,8 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 from math import radians, sin, cos, sqrt, atan2
-import numpy as np
 
 # Fonction pour calculer la distance de Haversine
 def haversine(lat1, lon1, lat2, lon2):
@@ -53,16 +54,30 @@ for ville1 in villes:
             distance = haversine(lat1, lon1, lat2, lon2)
             G.add_edge(ville1, ville2, weight=distance)
 
-# Récupération des positions pour l'affichage
-pos = nx.get_node_attributes(G, 'pos')
+# Initialiser la carte avec Cartopy
+fig = plt.figure(figsize=(10, 10))
+ax = plt.axes(projection=ccrs.PlateCarree())
+ax.set_extent([-5, 10, 41, 52])  # Limites pour la France
 
-# Affichage du graphe
-plt.figure(figsize=(12, 12))
-nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=500, font_size=10, font_weight='bold')
+# Ajouter les caractéristiques de la carte (frontières, côtes, etc.)
+ax.add_feature(cfeature.BORDERS, linestyle=':', alpha=0.7)
+ax.add_feature(cfeature.COASTLINE)
+ax.add_feature(cfeature.LAND, edgecolor='black')
+ax.add_feature(cfeature.OCEAN, facecolor='lightblue')
 
-# Ajouter les étiquettes des poids (distances)
-edge_labels = nx.get_edge_attributes(G, 'weight')
-nx.draw_networkx_edge_labels(G, pos, edge_labels={(u, v): f'{w:.1f} km' for u, v, w in G.edges(data='weight')})
+# Récupérer les positions pour Cartopy (PlateCarree projection)
+pos = {ville: (lon, lat) for ville, (lat, lon) in villes.items()}
 
-plt.title('Réseau de villes et routes (Distance Haversine)')
+# Tracer les villes sur la carte
+for ville, (lon, lat) in pos.items():
+    plt.plot(lon, lat, marker='o', color='red', markersize=5, transform=ccrs.PlateCarree())
+    plt.text(lon + 0.1, lat, ville, fontsize=9, transform=ccrs.PlateCarree())
+
+# Tracer les routes avec les distances de Haversine
+for ville1, ville2 in G.edges():
+    lat1, lon1 = villes[ville1]
+    lat2, lon2 = villes[ville2]
+    plt.plot([lon1, lon2], [lat1, lat2], color='blue', linewidth=0.5, transform=ccrs.PlateCarree())
+
+plt.title('Réseau de villes et routes en France (Cartopy)')
 plt.show()
