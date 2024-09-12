@@ -89,9 +89,9 @@ def select(population, fitness_scores):
             return population[i]
 
 # Paramètres pour l'algorithme génétique
-population_size = 100
-generations = 500
-mutation_rate = 0.02
+population_size = 500
+generations = 250
+mutation_rate = 0.001
 
 # Initialisation de la population
 population = [generate_individual(villes) for _ in range(population_size)]
