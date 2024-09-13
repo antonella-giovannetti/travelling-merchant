@@ -8,7 +8,7 @@ from villes import villes, haversine
 def generate_individual(villes):
     """
     Génère un individu aléatoire (un itinéraire) en créant une permutation des villes.
-    
+
     :param villes: Dictionnaire des villes et de leurs coordonnées.
     :return: Un individu, qui est une liste de villes dans un ordre aléatoire.
     """
@@ -17,7 +17,7 @@ def generate_individual(villes):
 def calculate_fitness(individual, villes):
     """
     Calcule l'inverse de la distance totale d'un itinéraire pour l'utiliser comme score de fitness.
-    
+
     :param individual: Un itinéraire (liste de villes dans un ordre spécifique).
     :param villes: Dictionnaire contenant les coordonnées des villes.
     :return: L'inverse de la distance totale de l'itinéraire.
@@ -28,19 +28,19 @@ def calculate_fitness(individual, villes):
         lat1, lon1 = villes[ville1]
         lat2, lon2 = villes[ville2]
         distance_total += haversine(lat1, lon1, lat2, lon2)
-    
+
     # Ajouter la distance entre la dernière et la première ville pour boucler l'itinéraire
     ville1, ville2 = individual[-1], individual[0]
     lat1, lon1 = villes[ville1]
     lat2, lon2 = villes[ville2]
     distance_total += haversine(lat1, lon1, lat2, lon2)
-    
+
     return 1 / distance_total
 
 def crossover(parent1, parent2):
     """
     Réalise un croisement partiel entre deux parents pour générer un nouvel individu.
-    
+
     :param parent1: Le premier parent (itinéraire).
     :param parent2: Le second parent (itinéraire).
     :return: Un nouvel individu généré à partir des deux parents.
@@ -48,7 +48,7 @@ def crossover(parent1, parent2):
     child = [-1] * len(parent1)
     start, end = sorted(random.sample(range(len(parent1)), 2))
     child[start:end] = parent1[start:end]
-    
+
     for i in range(len(parent2)):
         if parent2[i] not in child:
             for j in range(len(child)):
@@ -60,7 +60,7 @@ def crossover(parent1, parent2):
 def mutate(individual, mutation_rate):
     """
     Applique une mutation à un individu en échangeant deux villes en fonction d'un taux de mutation.
-    
+
     :param individual: L'individu (itinéraire) à muter.
     :param mutation_rate: Probabilité d'appliquer une mutation à chaque position.
     :return: L'individu muté.
@@ -74,7 +74,7 @@ def mutate(individual, mutation_rate):
 def select(population, fitness_scores):
     """
     Sélectionne un individu de la population en fonction de son fitness (méthode de la roulette).
-    
+
     :param population: Liste des individus (itinéraires) dans la population.
     :param fitness_scores: Liste des scores de fitness pour chaque individu.
     :return: Un individu sélectionné en fonction de la méthode de la roulette.
@@ -82,16 +82,16 @@ def select(population, fitness_scores):
     total_fitness = sum(fitness_scores)
     pick = random.uniform(0, total_fitness)
     current = 0
-    
+
     for i, fitness in enumerate(fitness_scores):
         current += fitness
         if current > pick:
             return population[i]
 
 # Paramètres pour l'algorithme génétique
-population_size = 500
+population_size = 1000
 generations = 250
-mutation_rate = 0.001
+mutation_rate = 0.075
 
 # Initialisation de la population
 population = [generate_individual(villes) for _ in range(population_size)]
@@ -99,19 +99,22 @@ population = [generate_individual(villes) for _ in range(population_size)]
 # Boucle de l'algorithme génétique
 for generation in range(generations):
     fitness_scores = [calculate_fitness(ind, villes) for ind in population]
-    new_population = []
-    
-    for _ in range(population_size):
+
+    # Sélectionner aléatoirement 50% des individus pour former la première moitié de la nouvelle population
+    new_population = random.sample(population, population_size // 2)
+
+    # Générer les nouveaux enfants et les ajouter à la seconde moitié de la nouvelle population
+    while len(new_population) < population_size:
         parent1 = select(population, fitness_scores)
         parent2 = select(population, fitness_scores)
         child = crossover(parent1, parent2)
         child = mutate(child, mutation_rate)
         new_population.append(child)
-    
+
     population = new_population
     best_fitness = max(fitness_scores)
     best_individual = population[fitness_scores.index(best_fitness)]
-    
+
     print(f"Génération {generation}: Meilleure fitness = {best_fitness:.5f}")
 
 # Affichage de l'itinéraire optimal
