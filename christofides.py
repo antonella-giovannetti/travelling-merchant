@@ -1,3 +1,4 @@
+import heapq
 import networkx as nx
 from itertools import combinations
 import matplotlib.pyplot as plt
@@ -18,6 +19,40 @@ def create_complete_graph(cities):
         G.add_edge(city1, city2, weight=distance)
     return G
 
+def prim_mst(G):
+    """
+    Implémente l'algorithme de Prim pour calculer l'arbre couvrant minimum d'un graphe pondéré.
+
+    :param G: Graphe complet avec des distances pondérées entre les villes.
+    :return: Liste des arêtes de l'arbre couvrant minimum (MST).
+    """
+    start_node = list(G.nodes())[0]  # Choisir un noeud de départ
+    mst_edges = []  # Arêtes de l'arbre couvrant minimum
+    visited = set([start_node])  # Noeuds déjà visités
+    edge_heap = []  # Utiliser un tas pour les arêtes (poids, u, v)
+
+    # Ajouter toutes les arêtes sortantes du noeud de départ dans le tas
+    for neighbor in G[start_node]:
+        weight = G[start_node][neighbor]['weight']  # Accéder au poids
+        heapq.heappush(edge_heap, (weight, start_node, neighbor))
+
+    # Tant qu'il reste des arêtes à traiter
+    while edge_heap:
+        weight, u, v = heapq.heappop(edge_heap)
+
+        # Si le noeud de destination n'a pas encore été visité
+        if v not in visited:
+            visited.add(v)
+            mst_edges.append((u, v, weight))  # Ajouter l'arête à l'MST
+
+            # Ajouter toutes les nouvelles arêtes sortantes du noeud v au tas
+            for neighbor in G[v]:
+                if neighbor not in visited:
+                    weight = G[v][neighbor]['weight']  # Accéder au poids
+                    heapq.heappush(edge_heap, (weight, v, neighbor))
+
+    return mst_edges
+
 def christofides_algorithm(cities):
     """
     Implémente l'algorithme de Christofides pour résoudre le problème du voyageur de commerce.
@@ -26,7 +61,10 @@ def christofides_algorithm(cities):
     :return: Chemin Hamiltonien trouvé par l'algorithme de Christofides.
     """
     G = create_complete_graph(cities)
-    mst = nx.minimum_spanning_tree(G)
+    mst_edges = prim_mst(G)  # Utilisation de l'implémentation de Prim
+    mst = nx.Graph()
+    mst.add_weighted_edges_from(mst_edges)
+
     odd_nodes = [node for node in mst.nodes() if mst.degree(node) % 2 == 1]
     odd_subgraph = G.subgraph(odd_nodes)
     min_matching = nx.algorithms.matching.min_weight_matching(odd_subgraph)

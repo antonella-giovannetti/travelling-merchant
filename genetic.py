@@ -89,9 +89,9 @@ def select(population, fitness_scores):
             return population[i]
 
 # Paramètres pour l'algorithme génétique
-population_size = 1000
-generations = 250
-mutation_rate = 0.075
+population_size = 500
+generations = 50
+mutation_rate = 0.001
 
 # Initialisation de la population
 population = [generate_individual(villes) for _ in range(population_size)]
@@ -100,13 +100,16 @@ population = [generate_individual(villes) for _ in range(population_size)]
 for generation in range(generations):
     fitness_scores = [calculate_fitness(ind, villes) for ind in population]
 
-    # Sélectionner aléatoirement 50% des individus pour former la première moitié de la nouvelle population
-    new_population = random.sample(population, population_size // 2)
+    # Trier la population en fonction des scores de fitness (ordre décroissant)
+    sorted_population = [x for _, x in sorted(zip(fitness_scores, population), key=lambda pair: pair[0], reverse=True)]
+    
+    # Garder les 50% des meilleurs individus pour la nouvelle population
+    new_population = sorted_population[:population_size // 2]
 
     # Générer les nouveaux enfants et les ajouter à la seconde moitié de la nouvelle population
     while len(new_population) < population_size:
-        parent1 = select(population, fitness_scores)
-        parent2 = select(population, fitness_scores)
+        parent1 = select(sorted_population, fitness_scores)
+        parent2 = select(sorted_population, fitness_scores)
         child = crossover(parent1, parent2)
         child = mutate(child, mutation_rate)
         new_population.append(child)
