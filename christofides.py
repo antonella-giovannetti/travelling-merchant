@@ -146,5 +146,4 @@ graph = create_complete_graph(villes)
 total_distance = calculate_total_distance(path, graph)
 print(f"Distance totale du chemin : {total_distance:.2f} km")
 
-# Visualisation du chemin avec les distances
-plot_route_with_distances(cities, path, graph)
+plot_route_with_distances(villes, path, graph)
